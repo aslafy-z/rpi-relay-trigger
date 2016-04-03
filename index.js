@@ -24,7 +24,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //We also need 3 services - Red, Green and Blue.
 // Each section is doing exactly the same but for a particular color.
-// First, we grab the value and if it is an integer we are dividing it by 255 and sending it to the pi-blaster daemon.
 
 app.get('/red/:value', function (req, res) {
     console.log("red = " + req.params.value);
