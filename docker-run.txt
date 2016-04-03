@@ -1,0 +1,1 @@
+docker run -d -v /sys:/sys -p 3000:3000 watkinspd/rgb-toggle

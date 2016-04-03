@@ -1,0 +1,16 @@
+{
+  "name": "rgb-toggle",
+  "version": "0.0.1",
+  "description": "Control a RGB LED with 3 toggles on a webpage.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "start": "node index.js"
+  },
+  "author": "Peter Watkins",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.11.2",
+    "rpi-gpio": "^0.7.0"
+  }
+}
