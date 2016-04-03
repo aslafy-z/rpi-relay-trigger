@@ -21,6 +21,9 @@ My setup includes:
 - Physical setup for the Raspberry Pi RGB LED tutorials
  - example: http://raspberrypi.powersbrewery.com/project-6-rgb-led/
 
+Note:
+
+If you have installed pi-blaster -- I discovered that you need to stop the pi-blaster service before running this app.  
 Suggestion:
 
 If you are a newbie like me, get the app working on the raspberry first. I spent much time chasing apt-get install dependencies and such.
