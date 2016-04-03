@@ -15,6 +15,8 @@ My setup includes:
 
 - Additional packages added to enable Hypriot to build/run nodejs apps using the rpi-gpio module.
   - https://github.com/JamesBarwell/rpi-gpio.js
+  - http://www.robert-drummond.com/2013/06/06/raspberry-pi-gpio-inputoutput-in-javascript/
+  - http://blog.hypriot.com/post/lets-get-physical/
 
 - Physical setup for the Raspberry Pi RGB LED tutorials
  - example: http://raspberrypi.powersbrewery.com/project-6-rgb-led/
