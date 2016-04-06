@@ -22,11 +22,13 @@ ___
 
 - Physical setup for the Raspberry Pi RGB LED tutorials
  - example: http://raspberrypi.powersbrewery.com/project-6-rgb-led/
+
 ___
 
 ![alt text](docs/app-photo.png "Project")
 
 ___
+
 ## Note:
 
 If you have installed pi-blaster -- I discovered that you need to stop the pi-blaster service before running this app.  
