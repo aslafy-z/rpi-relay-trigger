@@ -1,8 +1,11 @@
-FROM hypriot/rpi-node
-
+FROM resin/raspberry-pi-node as build
 WORKDIR /app
-COPY . /app
-RUN cd /app; npm install
+COPY package.json package-lock.json ./
+RUN npm install
 
-ENTRYPOINT ["npm", "start"]
+FROM resin/raspberry-pi-node:slim
+COPY --from=build /app .
+WORKDIR /app
+COPY . .
+CMD ["npm", "start"]
 EXPOSE 3000

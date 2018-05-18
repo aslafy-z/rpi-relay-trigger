@@ -1,96 +1,98 @@
-/* adapted from https://github.com/Kylir/rgb-slider */
+/* adapted from https://github.com/watkinspd/rgb-toggle */
 
-var express = require('express');
-var gpio = require('rpi-gpio');
-var path = require('path');
-var app = express();
+const sleep = require('sleep-promise');
+const lock = new (require('node-async-locks')).AsyncLock();
+const path = require('path');
+const express = require('express');
+const isRpi = require('detect-rpi');
+const app = express();
 
-var RED_GPIO_PIN = 11;
-var GREEN_GPIO_PIN = 12;
-var BLUE_GPIO_PIN = 15;
-
-gpio.setup(RED_GPIO_PIN, gpio.DIR_OUT, gpio.EDGE_NONE, pinSet(RED_GPIO_PIN));
-gpio.setup(GREEN_GPIO_PIN, gpio.DIR_OUT, gpio.EDGE_NONE, pinSet(GREEN_GPIO_PIN));
-gpio.setup(BLUE_GPIO_PIN, gpio.DIR_OUT, gpio.EDGE_NONE, pinSet(BLUE_GPIO_PIN));
-
-
-function pinSet(pinID) {
-    console.log('Setup to pin' + pinID);
+let gpio;
+if (isRpi()) {
+  gpio = require('rpi-gpio').promise;
+} else {
+  gpio = require('./rpi-gpio-mock').promise;
+  console.log('Not running on a raspberry pi, using gpio mocks');
 }
 
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
-//Serve public content - basically any file in the public folder will be available on the server.
+const PORT = process.env.PORT || 3000;
+const GPIO_PINS = (process.env.GPIO_PINS || '7,11')
+  .split(',')
+  .map((num) => parseInt(num, 10));
+
+// tooling
+const range = (n) => [...Array.from(Array(n).keys())];
+
+// Async locked events tooling
+function fire_order(order) {
+  lock.enter(launch.bind(null, order));
+}
+function launch(order, token) {
+  order().then(() => token.leave());
+}
+
+// GPIO sequences tooling
+function trigger(on = true) {
+  return Promise.all(GPIO_PINS.map((pin) => gpio.write(pin, !on)));
+}
+function sequence(interval) {
+  return trigger(true)
+    .then(() => sleep(interval))
+    .then(() => trigger(false));
+}
+function shutdown() {
+  gpio.destroy().then(() => {
+    process.exit(0);
+  });
+}
+
+// Serve public content
 app.use(express.static(path.join(__dirname, 'public')));
 
-//We also need 3 services - Red, Green and Blue.
-// Each section is doing exactly the same but for a particular color.
+app.get('/api/blink', (req, res) => {
+  const interval = parseInt(req.query.interval || '1000', 10);
+  const duration = parseInt(req.query.duration || '2', 10);
 
-app.get('/red/:value', function (req, res) {
-    console.log("red = " + req.params.value);
-    var redValue = req.params.value;
-    if( !isNaN( parseInt(redValue) ) ){
-      if (redValue === "1") {
-        gpio.write(RED_GPIO_PIN, true, function(err) {
-            if (err) throw err;
-        });
-        res.send('ok');
+  function the_order() {
+    let promise = Promise.resolve().catch((err) => app.emit('failure', err));
+    for (const idx in range(duration)) {
+      promise = promise.then(() => sequence(interval));
+      if (idx + 1 < duration) {
+        promise = promise.then(() => sleep(interval));
       }
-      else {
-        gpio.write(RED_GPIO_PIN, false, function(err) {
-            if (err) throw err;
-        });
-        res.send('ok');
-      }
-    } else {
-        res.status(400).send('error');
     }
+    return promise;
+  }
+
+  fire_order(the_order);
+  res.send('OK');
 });
 
-app.get('/green/:value', function (req, res) {
-    console.log("green = " + req.params.value);
-    var greenValue = req.params.value;
-    if( !isNaN( parseInt(greenValue) ) ){
-      if (greenValue === "1") {
-        gpio.write(GREEN_GPIO_PIN, true, function(err) {
-            if (err) throw err;
-        });
-        res.send('ok');
-      }
-      else {
-        gpio.write(GREEN_GPIO_PIN, false, function(err) {
-            if (err) throw err;
-        });
-        res.send('ok');
-      }
-    } else {
-        res.status(400).send('error');
-    }
+app.on('gpio-ready', () => app.emit('ready'));
+app.on('gpio-failure', (err) => app.emit('failure', err));
+
+app.on('ready', () => {
+  console.log('Pins have been initialized');
+
+  app.listen(PORT, () => {
+    console.log('Listening on :' + PORT);
+  });
 });
 
-app.get('/blue/:value', function (req, res) {
-    console.log("blue = " + req.params.value);
-    var blueValue = req.params.value;
-    if( !isNaN( parseInt(blueValue) ) ){
-        if (blueValue === "1") {
-          gpio.write(BLUE_GPIO_PIN, true, function(err) {
-              if (err) throw err;
-          });
-          res.send('ok');
-        }
-        else {
-          gpio.write(BLUE_GPIO_PIN, false, function(err) {
-              if (err) throw err;
-          });
-          res.send('ok');
-        }
-    } else {
-        res.status(400).send('error');
-    }
+app.on('failure', (err) => {
+  console.error(err);
+  process.exit(1);
 });
 
-// Start listening on port 3000.
-var server = app.listen(3000, function () {
-    var host = server.address().address;
-    var port = server.address().port;
-    console.log('RGB LED Toggle listening at http://%s:%s', host, port);
-});
+// Setup GPIO pins
+Promise.resolve()
+  .then(() =>
+    Promise.all(GPIO_PINS.map((pin) => gpio.setup(pin, gpio.DIR_OUT))),
+  )
+  .then(() => sleep(3000))
+  .then(() => trigger(false))
+  .then(() => app.emit('gpio-ready'))
+  .catch((err) => app.emit('gpio-failure', err));

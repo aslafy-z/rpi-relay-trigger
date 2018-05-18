@@ -1,16 +1,19 @@
 {
-  "name": "rgb-toggle",
+  "name": "rpi-relay-trigger",
   "version": "0.0.1",
-  "description": "Control a RGB LED with 3 toggles on a webpage.",
+  "description": "Trigger RPI GPIO Relay via webhook",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "start": "node index.js"
   },
-  "author": "Peter Watkins",
+  "author": "Zadkiel ASLAFY-AHARONIAN",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.11.2",
-    "rpi-gpio": "^0.7.0"
+    "detect-rpi": "^1.2.0",
+    "express": "^4.16.3",
+    "node-async-locks": "^1.0.1",
+    "rpi-gpio": "git://github.com/aslafy-z/rpi-gpio.js.git#fix/update-deps",
+    "sleep-promise": "^6.0.0"
   }
 }

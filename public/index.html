@@ -2,29 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Raspberry PI GPIO Pins on Buttons</title>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
-  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-  <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
-  <script src="script.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <script>
-  $(function() {
-    $( "#red", "#green", "#blue" ).checkbox();
-
-  });
-  </script>
+  <title>Raspberry PI Relay trigger</title>
+  <!-- <link rel="stylesheet" href="styles.css"> -->
 </head>
-<body class="ui-widget-content" style="border:0;">
+<body>
 
-  <div class="switch">
-    <input id="red" class="cmn-toggle-red cmn-toggle-round-red" type="checkbox">
-    <label for="red"></label>
-    <input id="green" class="cmn-toggle-green cmn-toggle-round-green" type="checkbox">
-    <label for="green"></label>
-    <input id="blue" class="cmn-toggle-blue cmn-toggle-round-blue" type="checkbox">
-    <label for="blue"></label>
-  </div>
+  <form action="/api/blink" method="get">
+    <div>
+      <label for="blink_duration">Duration</label>
+      <input id="blink_duration" name="duration" type="number" value="2" />
+    </div>
+
+    <div>
+      <label for="blink_interval">Interval</label>
+      <input id="blink_interval" name="interval" type="number" value="1000" />
+    </div>
+    <input type="submit" />
+  </form>
 
 </body>
 </html>
